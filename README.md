@@ -20,6 +20,16 @@ user> (def db (make-db "/tmp"))
 #'user/db
 ```
 
+You can specify the max memory map size as well:
+
+```clojure
+(use 'clj-lmdb.core :reload)
+nil
+user> (def db (make-db "/tmp" <size_in_bytes>))
+#'user/db
+```
+
+
 ### Inserting/Retrieving Values
 
 `get!` and `put!`
