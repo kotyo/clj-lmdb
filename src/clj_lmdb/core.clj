@@ -3,6 +3,8 @@
 
 (defrecord DB [env db])
 
+(defrecord NamedDB [env db name])
+
 (defrecord Txn [txn type])
 
 (defn make-db
@@ -16,6 +18,22 @@
      (DB. env db)))
   ([dir-path]
    (make-db dir-path 10485760)))
+
+(defn make-named-db
+  "Create a named database using an env.
+  Returns a db record you can use with all
+  the other functions"
+  ([dir-path name max-size]
+   (let [env (doto (Env. dir-path)
+               (.setMapSize max-size))
+         db  (.openDatabase env name)]
+     (NamedDB. env
+               db
+               name)))
+  ([dir-path name]
+   (make-named-db dir-path
+                  name
+                  10485760)))
 
 (defn read-txn
   [db-record]
@@ -88,6 +106,11 @@
     (.delete db
              k))))
 
+(defn drop-db!
+  [named-db-record]
+  (-> named-db-record
+      :db
+      (.drop true)))
 
 (defn items
   [db-record txn]

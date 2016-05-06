@@ -86,3 +86,28 @@
 
         (is (= (count (items-from db txn "400"))
                0))))))
+
+(deftest named-db-test
+  (testing "Create multiple databases in a single env."
+    (let [db-record1 (make-named-db "/tmp"
+                                    "db1")
+
+          db-record2 (make-named-db "/tmp"
+                                    "db2")]
+      (put! db-record1
+            "foo"
+            "bar")
+      (put! db-record2
+            "foo"
+            "baz")
+
+      (is (= (get! db-record1
+                   "foo")
+             "bar"))
+
+      (is (= (get! db-record2
+                   "foo")
+             "baz"))
+
+      (drop-db! db-record1)
+      (drop-db! db-record2))))

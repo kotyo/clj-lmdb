@@ -3,6 +3,8 @@
   (:import [org.fusesource.lmdbjni Constants]))
 
 (def make-db core/make-db)
+(def make-named-db core/make-named-db)
+(def drop-db! core/drop-db!)
 (def read-txn core/read-txn)
 (def write-txn core/write-txn)
 
