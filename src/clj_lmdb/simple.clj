@@ -7,6 +7,7 @@
 (def drop-db! core/drop-db!)
 (def read-txn core/read-txn)
 (def write-txn core/write-txn)
+(def close! core/close!)
 
 (defmacro with-txn
   [& args]
@@ -35,13 +36,12 @@
    (core/delete! db-record (Constants/bytes k))))
 
 (defn items
-  [db-record txn]
-  (->> (core/items db-record txn)
+  [db-record txn & options]
+  (->> (apply core/items db-record txn options)
        (map (fn [[k v]] [(Constants/string k) (Constants/string v)]))))
 
 (defn items-from
-  [db-record txn from]
-  (->> (Constants/bytes from)
-       (core/items-from db-record txn)
-       (map (fn [[k v]] [(Constants/string k) (Constants/string v)]))))
- 
+  [db-record txn from & options]
+  (map (fn [[k v]] [(Constants/string k) (Constants/string v)])
+       (apply core/items-from db-record txn
+              (Constants/bytes from) options)))

@@ -1,5 +1,5 @@
 (ns clj-lmdb.core
-  (:import [org.fusesource.lmdbjni Database Env]))
+  (:import [org.fusesource.lmdbjni Env]))
 
 (defrecord DB [env db])
 
@@ -113,29 +113,34 @@
       (.drop true)))
 
 (defn items
-  [db-record txn]
+  [db-record txn & {:keys [order] :or {order :asc}}]
   (let [db   (:db db-record)
         txn* (:txn txn)
 
-        entries (-> db
-                    (.iterate txn*)
-                    iterator-seq)]
+        it (case order
+             :asc (.iterate db txn*)
+             :desc (.iterateBackward db txn*)
+             (throw (IllegalArgumentException.
+                      ":order must be either :asc or :desc")))]
     (map
      (fn [e]
        [(.getKey e) (.getValue e)])
-     entries)))
+     (iterator-seq it))))
 
 (defn items-from
-  [db-record txn from]
+  [db-record txn from & {:keys [order] :or {order :asc}}]
   (let [db   (:db db-record)
         txn* (:txn txn)
 
-        entries (-> db
-                    (.seek txn*
-                           from)
-                    iterator-seq)]
+        it (case order
+             :asc (.seek db txn* from)
+             :desc (.seekBackward db txn* from)
+             (throw (IllegalArgumentException.
+                      ":order must be either :asc or :desc")))]
     (map
-     (fn [e]
-       [(.getKey e) (.getValue e)])
-     entries)))
- 
+      (fn [e]
+        [(.getKey e) (.getValue e)])
+      (iterator-seq it))))
+
+(defn close! [db]
+  (.close (:db db)))

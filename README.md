@@ -114,6 +114,30 @@ to iterate over the entries or to iterate from a particular key onwards.
     (items-from db txn "foo")))))
 ```
 
+Use optional parameters `:order :asc` or `:order :desc` (default order is 
+ascending) in `items` and `items-from` function calls to specify ascending or 
+descending order of the keys.
+
+```clojure
+(with-txn [txn (read-txn db)]
+ (count
+  (doall
+   (map
+    (fn [[k v]]
+      ...)
+    (items db txn :order :desc)))))
+```
+
+```clojure
+(with-txn [txn (read-txn db)]
+ (count
+  (doall
+   (map
+    (fn [[k v]]
+      ...)
+    (items-from db txn "foo" :order :desc)))))
+```
+
 For more examples, see the [tests](test/clj_lmdb/simple_test.clj)
 
 ## LICENSE

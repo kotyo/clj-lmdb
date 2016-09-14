@@ -50,11 +50,8 @@
   (testing "Iteration"
     (let [db (make-db "/tmp")]
       (with-txn [txn (write-txn db)]
-        (doall
-         (map
-          (fn [i]
-            (put! db txn (str i) (str i)))
-          (range 1000))))
+        (dotimes [i 1000]
+          (put! db txn (str i) (str i))))
 
       (with-txn [txn (read-txn db)]
         (let [num-items (count
@@ -67,6 +64,10 @@
           (is (= num-items 1000))))
 
       (with-txn [txn (read-txn db)]
+                (is (= ["999" "999"] (first (items db txn :order :desc))))
+                (is (= ["0" "0"] (first (items db txn :order :asc)))))
+
+      (with-txn [txn (read-txn db)]
         (let [num-items (count
                          (doall
                           (map
@@ -76,13 +77,16 @@
                            (items-from db txn "500"))))]
           (is (= num-items 553)))) ; items are sorted in alphabetical order - not numerical
 
+      (with-txn [txn (read-txn db)]
+                (is (= 337 (count (items-from db txn "400" :order :desc))))
+                (is (= 664 (count (items-from db txn "400" :order :asc))))
+                (is (thrown? IllegalArgumentException
+                             (items-from db txn "400" :order :other))))
+
+
       (with-txn [txn (write-txn db)]
-        (doall
-         (map
-          #(->> %
-                str
-                (delete! db txn))
-          (range 1000)))
+        (dotimes [i 1000]
+          (delete! db txn (str i)))
 
         (is (= (count (items-from db txn "400"))
                0))))))
